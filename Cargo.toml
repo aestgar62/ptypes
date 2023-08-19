@@ -1,0 +1,5 @@
+[package]
+name = "ptypes"
+version = "0.1.0"
+authors = ["Antonio Estevez <aestgar62@gmail.com>"]
+edition = "2021"
