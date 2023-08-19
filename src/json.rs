@@ -253,4 +253,52 @@ impl FromStr for StringOrUri {
         string.to_string().try_into()
     }
 }
+#[cfg(test)]
+mod tests {
 
+    use super::*;
+
+    #[test]
+    fn test_one_or_many() {
+        let mut one = OneOrMany::One(1);
+        assert_eq!(one.len(), 1);
+        assert_eq!(one.is_empty(), false);
+        assert_eq!(one.contains(&1), true);
+        assert_eq!(one.contains(&2), false);
+        assert_eq!(one.first(), Some(&1));
+        assert_eq!(one.to_single(), Some(&1));
+        assert_eq!(one.to_single_mut(), Some(&mut 1));
+
+        let mut many = OneOrMany::Many(vec![1, 2, 3]);
+        assert_eq!(many.len(), 3);
+        assert_eq!(many.is_empty(), false);
+        assert_eq!(many.contains(&1), true);
+        assert_eq!(many.contains(&2), true);
+        assert_eq!(many.contains(&3), true);
+        assert_eq!(many.contains(&4), false);
+        assert_eq!(many.first(), Some(&1));
+        assert_eq!(many.to_single(), None);
+        assert_eq!(many.to_single_mut(), None);
+    }
+
+    #[test]
+    fn test_uri() {
+        let uri = Uri::new("https://example.com").unwrap();
+        assert_eq!(uri.to_string(), "https://example.com");
+        assert_eq!(uri, Uri::from_str("https://example.com").unwrap());
+        assert_eq!(uri, Uri::try_from("https://example.com".to_string()).unwrap());
+    }
+
+    #[test]
+    fn test_string_or_uri() {
+        let uri = StringOrUri::try_from("https://example.com").unwrap();
+        assert_eq!(uri.as_str(), "https://example.com");
+        assert_eq!(uri, StringOrUri::from_str("https://example.com").unwrap());
+        assert_eq!(uri, StringOrUri::try_from("https://example.com".to_string()).unwrap());
+
+        let string = StringOrUri::try_from("example").unwrap();
+        assert_eq!(string.as_str(), "example");
+        assert_eq!(string, StringOrUri::from_str("example").unwrap());
+        assert_eq!(string, StringOrUri::try_from("example".to_string()).unwrap());
+    }
+}
