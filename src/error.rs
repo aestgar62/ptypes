@@ -12,15 +12,30 @@
 // or implied. See the License for the specific language governing
 // permissions and limitations under the License.
 
-//! # ptypes
+//! # Errors
 //! 
 
-pub mod error;
-pub mod json;
+#[derive(Debug, PartialEq, Eq)]
+pub enum Error {
+    InvalidUri,
+}
 
-pub use error::Error;
+impl Error {
+    pub fn description(&self) -> &str {
+        match self {
+            Self::InvalidUri => "Invalid URI",
+        }
+    }
+}
 
-#[cfg(test)]
-mod tests {
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.description(), f)
+    }
+}
 
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        self.description()
+    }
 }
