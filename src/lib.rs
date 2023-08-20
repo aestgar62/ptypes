@@ -13,7 +13,7 @@
 // permissions and limitations under the License.
 
 //! # ptypes
-//! 
+//!
 
 pub mod error;
 pub mod json;
@@ -21,6 +21,4 @@ pub mod json;
 pub use error::Error;
 
 #[cfg(test)]
-mod tests {
-
-}
+mod tests {}

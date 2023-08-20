@@ -22,8 +22,10 @@
 
 use crate::Error;
 
-use uriparse::URI;
+use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
+use uriparse::URI;
+use zeroize::Zeroize;
 
 use std::str::FromStr;
 
@@ -154,7 +156,7 @@ pub struct Uri(String);
 impl Uri {
     /// Creates a new `Uri` from a string.
     pub fn new(value: &str) -> Result<Self, Error> {
-        if let Ok(_) = URI::try_from(value) {
+        if URI::try_from(value).is_ok() {
             Ok(Self(value.to_string()))
         } else {
             Err(Error::InvalidUri)
@@ -192,7 +194,6 @@ impl std::fmt::Display for Uri {
         write!(f, "{}", self.0)
     }
 }
-
 
 /// It is an enum to support properties that can be a `String` or a `URI`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -253,6 +254,36 @@ impl FromStr for StringOrUri {
         string.to_string().try_into()
     }
 }
+
+/// Base64 encoding using the URL- and filename-safe character set defined by Section 5
+/// of RFC 4648 [RFC4648](https://tools.ietf.org/html/rfc4648#section-5).
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Hash, Eq, Zeroize)]
+#[serde(try_from = "String")]
+#[serde(into = "Base64urlUIntString")]
+pub struct Base64urlUInt(pub Vec<u8>);
+type Base64urlUIntString = String;
+
+impl TryFrom<String> for Base64urlUInt {
+    type Error = base64::DecodeError;
+    fn try_from(data: String) -> Result<Self, Self::Error> {
+        Ok(Base64urlUInt(
+            general_purpose::STANDARD_NO_PAD.decode(data)?,
+        ))
+    }
+}
+
+impl From<&Base64urlUInt> for String {
+    fn from(data: &Base64urlUInt) -> String {
+        general_purpose::STANDARD_NO_PAD.encode(&data.0)
+    }
+}
+
+impl From<Base64urlUInt> for Base64urlUIntString {
+    fn from(data: Base64urlUInt) -> Base64urlUIntString {
+        String::from(&data)
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -286,7 +317,10 @@ mod tests {
         let uri = Uri::new("https://example.com").unwrap();
         assert_eq!(uri.to_string(), "https://example.com");
         assert_eq!(uri, Uri::from_str("https://example.com").unwrap());
-        assert_eq!(uri, Uri::try_from("https://example.com".to_string()).unwrap());
+        assert_eq!(
+            uri,
+            Uri::try_from("https://example.com".to_string()).unwrap()
+        );
     }
 
     #[test]
@@ -294,11 +328,23 @@ mod tests {
         let uri = StringOrUri::try_from("https://example.com").unwrap();
         assert_eq!(uri.as_str(), "https://example.com");
         assert_eq!(uri, StringOrUri::from_str("https://example.com").unwrap());
-        assert_eq!(uri, StringOrUri::try_from("https://example.com".to_string()).unwrap());
+        assert_eq!(
+            uri,
+            StringOrUri::try_from("https://example.com".to_string()).unwrap()
+        );
 
         let string = StringOrUri::try_from("example").unwrap();
         assert_eq!(string.as_str(), "example");
         assert_eq!(string, StringOrUri::from_str("example").unwrap());
-        assert_eq!(string, StringOrUri::try_from("example".to_string()).unwrap());
+        assert_eq!(
+            string,
+            StringOrUri::try_from("example".to_string()).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_base64url_uint() {
+        let data = Base64urlUInt(vec![1, 2, 3]);
+        assert_eq!(data, Base64urlUInt::try_from("AQID".to_string()).unwrap());
     }
 }

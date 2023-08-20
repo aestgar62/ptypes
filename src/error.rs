@@ -13,7 +13,7 @@
 // permissions and limitations under the License.
 
 //! # Errors
-//! 
+//!
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Error {

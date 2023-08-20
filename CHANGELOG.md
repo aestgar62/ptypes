@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Documentation
+
+- Update README.md
+
+### Testing
+
+- Json typesfirst version
+
+## [0.1.2] - 2023-08-19
+
+### Documentation
+
+- Init cliff change log
+
+### Features
+
+- First version of json types
+
 ## [0.1.1] - 2023-08-19
 
 ### Features
