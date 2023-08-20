@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Update README.md
 
+### Features
+
+- Base64UrlUInt type added
+
 ### Testing
 
 - Json typesfirst version
