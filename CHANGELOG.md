@@ -6,7 +6,18 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
+- Updates README.md
+
+### Features
+
+- ObjectWithId added to json module
+
+## [0.1.3] - 2023-08-20
+
+### Documentation
+
 - Update README.md
+- Update license & change log
 
 ### Features
 
