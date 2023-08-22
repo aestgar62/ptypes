@@ -22,12 +22,12 @@
 
 use crate::Error;
 
-use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use uriparse::URI;
-use zeroize::Zeroize;
 
 use std::str::FromStr;
+use std::collections::HashMap;
 
 /// It is an enum to support properties with a single value or an array of values.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -255,34 +255,46 @@ impl FromStr for StringOrUri {
     }
 }
 
-/// Base64 encoding using the URL- and filename-safe character set defined by Section 5
-/// of RFC 4648 [RFC4648](https://tools.ietf.org/html/rfc4648#section-5).
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Hash, Eq, Zeroize)]
-#[serde(try_from = "String")]
-#[serde(into = "Base64urlUIntString")]
-pub struct Base64urlUInt(pub Vec<u8>);
-type Base64urlUIntString = String;
-
-impl TryFrom<String> for Base64urlUInt {
-    type Error = base64::DecodeError;
-    fn try_from(data: String) -> Result<Self, Self::Error> {
-        Ok(Base64urlUInt(
-            general_purpose::STANDARD_NO_PAD.decode(data)?,
-        ))
-    }
+/// Object with identifier and properties.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ObjectWithId {
+    /// The identifier of the object.
+    pub id: Uri,
+    /// The properties of the object.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(flatten)]
+    pub property_set: Option<HashMap<String, Value>>,
 }
 
-impl From<&Base64urlUInt> for String {
-    fn from(data: &Base64urlUInt) -> String {
-        general_purpose::STANDARD_NO_PAD.encode(&data.0)
+impl ObjectWithId {
+
+    /// Creates a new `ObjectWithId` from an identifier.
+    pub fn new(id: Uri) -> Self {
+        Self {
+            id,
+            property_set: None,
+        }
     }
+
+    /// Sets a property.
+    pub fn set_property(&mut self, name: &str, value: Value) {
+        if self.property_set.is_none() {
+            self.property_set = Some(HashMap::new());
+        }
+        self.property_set.as_mut()
+            .expect("The properties must exist.")
+            .insert(name.to_string(), value);
+    }
+
+    /// Returns the value of a property.
+    pub fn get_property(&self, name: &str) -> Option<&Value> {
+        self.property_set.as_ref()
+            .and_then(|properties| properties.get(name))
+    }
+
 }
 
-impl From<Base64urlUInt> for Base64urlUIntString {
-    fn from(data: Base64urlUInt) -> Base64urlUIntString {
-        String::from(&data)
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -343,8 +355,10 @@ mod tests {
     }
 
     #[test]
-    fn test_base64url_uint() {
-        let data = Base64urlUInt(vec![1, 2, 3]);
-        assert_eq!(data, Base64urlUInt::try_from("AQID".to_string()).unwrap());
+    fn test_object_with_id() {
+        let mut object = ObjectWithId::new(Uri::new("https://example.com").unwrap());
+        object.set_property("name", Value::String("example".to_string()));
+        assert_eq!(object.get_property("name"), Some(&Value::String("example".to_string())));
     }
+
 }
