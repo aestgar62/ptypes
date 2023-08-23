@@ -1,0 +1,9 @@
+llvm: true
+output-type: lcov
+output-path: ./lcov.info
+source-dir: ./src
+ignore-not-existing: true
+ignore:
+  - "/*"
+  - "C:/*"
+  - "../*"
