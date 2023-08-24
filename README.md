@@ -9,7 +9,7 @@ Particular types for different specifications like based on the JSON format, suc
 
 ## Usage
 
-Add this to your `Cargo.toml`:
+Add this library to your `Cargo.toml`:
 
 ```toml
 [dependencies]
