@@ -59,5 +59,9 @@ mod tests {
     fn test_base64url_uint() {
         let data = Base64urlUInt(vec![1, 2, 3]);
         assert_eq!(data, Base64urlUInt::try_from("AQID".to_string()).unwrap());
+        let string = String::from(&data);
+        assert_eq!(string, "AQID");
+        let string: Base64urlUIntString = data.into();
+        assert_eq!(string, "AQID");
     }
 }

@@ -256,7 +256,7 @@ impl FromStr for StringOrUri {
 }
 
 /// Object with identifier and properties.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectWithId {
     /// The identifier of the object.
@@ -301,6 +301,8 @@ mod tests {
 
     use super::*;
 
+    use uriparse::URI;
+
     #[test]
     fn test_one_or_many() {
         let mut one = OneOrMany::One(1);
@@ -322,6 +324,16 @@ mod tests {
         assert_eq!(many.first(), Some(&1));
         assert_eq!(many.to_single(), None);
         assert_eq!(many.to_single_mut(), None);
+
+        let mut many = OneOrMany::Many(vec![1]);
+        assert_eq!(many.len(), 1);
+        assert_eq!(many.to_single(), Some(&1));
+        assert_eq!(many.to_single_mut(), Some(&mut 1));
+
+        let empty = OneOrMany::Many::<usize>(Vec::new());
+        assert_eq!(empty.len(), 0);
+        assert_eq!(empty.is_empty(), true);
+        assert_eq!(empty.first(), None);
     }
 
     #[test]
@@ -333,6 +345,11 @@ mod tests {
             uri,
             Uri::try_from("https://example.com".to_string()).unwrap()
         );
+        assert_eq!(String::from(uri.clone()), "https://example.com".to_owned());
+        let uri_type = uri.as_uri();
+        assert_eq!(uri_type, URI::try_from("https://example.com").unwrap());
+        let result = Uri::new("example");
+        assert!(result.is_err());
     }
 
     #[test]
@@ -359,6 +376,14 @@ mod tests {
         let mut object = ObjectWithId::new(Uri::new("https://example.com").unwrap());
         object.set_property("name", Value::String("example".to_string()));
         assert_eq!(object.get_property("name"), Some(&Value::String("example".to_string())));
+        let uri = Uri::new("https://example.com").unwrap();
+        let mut properties = HashMap::new();
+        properties.insert("name".to_string(), Value::String("example".to_string()));
+        let object2 = ObjectWithId {
+            id: uri,
+            property_set: Some(properties),
+        };
+        assert_eq!(object, object2);
     }
 
 }

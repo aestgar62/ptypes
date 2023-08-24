@@ -39,3 +39,15 @@ impl std::error::Error for Error {
         self.description()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_error() {
+        let err = Error::InvalidUri;
+        assert_eq!(err.description(), "Invalid URI");
+        assert_eq!(err.to_string(), "Invalid URI");
+    }
+}
