@@ -15,6 +15,7 @@
 //! # Miscellany of types
 //!
 
+use num_bigint::BigInt;
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
@@ -23,6 +24,7 @@ use std::convert::TryFrom;
 
 /// Base64 encoding using the URL- and filename-safe character set defined by Section 5
 /// of RFC 4648 [RFC4648](https://tools.ietf.org/html/rfc4648#section-5).
+#[cfg(feature = "bigint")]
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Hash, Eq, Zeroize)]
 #[serde(try_from = "String")]
 #[serde(into = "Base64urlUIntString")]
@@ -50,6 +52,13 @@ impl From<Base64urlUInt> for Base64urlUIntString {
     }
 }
 
+impl From<Base64urlUInt> for BigInt {
+
+    fn from(data: Base64urlUInt) -> BigInt {
+        BigInt::from_bytes_be(num_bigint::Sign::Plus, &data.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -61,7 +70,9 @@ mod tests {
         assert_eq!(data, Base64urlUInt::try_from("AQID".to_string()).unwrap());
         let string = String::from(&data);
         assert_eq!(string, "AQID");
-        let string: Base64urlUIntString = data.into();
+        let string: Base64urlUIntString = data.clone().into();
         assert_eq!(string, "AQID");
+        let bigint: BigInt = data.clone().into();
+        assert_eq!(bigint, BigInt::from(66051));
     }
 }
