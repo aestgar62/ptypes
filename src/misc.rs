@@ -36,14 +36,14 @@ impl TryFrom<String> for Base64urlUInt {
     type Error = base64::DecodeError;
     fn try_from(data: String) -> Result<Self, Self::Error> {
         Ok(Base64urlUInt(
-            general_purpose::STANDARD_NO_PAD.decode(data)?,
+            general_purpose::URL_SAFE_NO_PAD.decode(data)?,
         ))
     }
 }
 
 impl From<&Base64urlUInt> for String {
     fn from(data: &Base64urlUInt) -> String {
-        general_purpose::STANDARD_NO_PAD.encode(&data.0)
+        general_purpose::URL_SAFE_NO_PAD.encode(&data.0)
     }
 }
 
