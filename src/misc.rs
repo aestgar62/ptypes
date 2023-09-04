@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
 use std::convert::TryFrom;
+use std::fmt::{self, Display, Formatter};
 
 /// Base64 encoding using the URL- and filename-safe character set defined by Section 5
 /// of RFC 4648 [RFC4648](https://tools.ietf.org/html/rfc4648#section-5).
@@ -59,6 +60,12 @@ impl From<Base64urlUInt> for BigInt {
     }
 }
 
+impl Display for Base64urlUInt {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", String::from(self))
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -74,5 +81,6 @@ mod tests {
         assert_eq!(string, "AQID");
         let bigint: BigInt = data.clone().into();
         assert_eq!(bigint, BigInt::from(66051));
+        assert_eq!(data.to_string(), "AQID");
     }
 }
